@@ -9,8 +9,6 @@ final class AppState: ObservableObject {
     @Published var selectedTab: Tab = .home
     @Published var corpusArticleCount: Int = 0
 
-    var corpusResourceRequest: NSBundleResourceRequest? // nil when using URL/file import
-
     let db: DatabaseService
     let articleService: ArticleService
     let noteService: NoteService

@@ -15,11 +15,10 @@ struct OnboardingView: View {
             case .aiCheck:
                 AICheckStep(aiAvailable: appState.aiAvailable, onNext: { step = .corpus })
             case .corpus:
-                CorpusStep(onComplete: { request in
-                    appState.corpusResourceRequest = request
+                CorpusStep {
                     appState.corpusArticleCount = appState.db.corpusArticleCount
                     appState.hasCorpus = appState.corpusArticleCount > 0
-                })
+                }
             }
         }
     }
@@ -145,7 +144,7 @@ private struct AICheckStep: View {
 
 private struct CorpusStep: View {
     @EnvironmentObject var appState: AppState
-    let onComplete: (NSBundleResourceRequest?) -> Void
+    let onComplete: () -> Void
 
     @State private var phase: Phase = .idle
     @State private var progress: Double = 0
@@ -155,30 +154,30 @@ private struct CorpusStep: View {
 
     enum Phase { case idle, downloading, importing, done }
 
-    private var hasDownloadURL: Bool { Config.corpusDownloadURL != nil }
-
     var body: some View {
         VStack(spacing: 28) {
             Spacer()
-            Image(systemName: "externaldrive.fill")
+            Image(systemName: phase == .done ? "checkmark.circle.fill" : "externaldrive.fill")
                 .font(.system(size: 64))
-                .foregroundStyle(.blue)
+                .foregroundStyle(phase == .done ? .green : .blue)
+                .animation(.easeInOut, value: phase)
 
             VStack(spacing: 10) {
                 Text("Wikipedia Corpus")
                     .font(.title2.bold())
-                Text("9,978 vital Wikipedia articles, fully offline.")
+                Text("9,978 vital articles · ~1.2 GB · downloaded once")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
             }
 
-            // Progress
-            if phase == .downloading {
+            // Status
+            switch phase {
+            case .downloading:
                 VStack(spacing: 8) {
                     ProgressView(value: progress > 0 ? progress : nil)
                         .padding(.horizontal)
-                    Text(progress > 0 ? "\(Int(progress * 100))%" : "Connecting…")
+                    Text(progress > 0 ? "\(Int(progress * 100))% — \(mbLabel)" : "Connecting…")
                         .font(.caption).foregroundStyle(.secondary)
                     Button("Cancel") {
                         downloadTask?.cancel()
@@ -186,11 +185,16 @@ private struct CorpusStep: View {
                     }
                     .font(.caption).foregroundStyle(.red)
                 }
-            } else if phase == .importing {
+            case .importing:
                 HStack(spacing: 10) {
                     ProgressView()
                     Text("Importing…").font(.caption).foregroundStyle(.secondary)
                 }
+            case .done:
+                Text("Corpus ready. Tap below to start.")
+                    .font(.subheadline).foregroundStyle(.green)
+            default:
+                EmptyView()
             }
 
             if let errorMsg {
@@ -201,9 +205,17 @@ private struct CorpusStep: View {
             Spacer()
 
             VStack(spacing: 12) {
-                // Primary: URL download (GitHub Releases, etc.)
-                if hasDownloadURL {
-                    Button(action: startURLDownload) {
+                if phase == .done {
+                    Button(action: onComplete) {
+                        Text("Start Reading")
+                            .font(.headline).foregroundStyle(.white)
+                            .frame(maxWidth: .infinity).padding()
+                            .background(.green)
+                            .clipShape(RoundedRectangle(cornerRadius: 14))
+                    }
+                } else {
+                    // Primary: download from GitHub
+                    Button(action: startDownload) {
                         Label(phase == .downloading ? "Downloading…" : "Download Corpus",
                               systemImage: "arrow.down.circle.fill")
                             .font(.headline).foregroundStyle(.white)
@@ -212,24 +224,13 @@ private struct CorpusStep: View {
                             .clipShape(RoundedRectangle(cornerRadius: 14))
                     }
                     .disabled(phase != .idle)
-                }
 
-                // Import from Files (always available)
-                if hasDownloadURL {
+                    // Secondary: import from Files
                     Button(action: { showFilePicker = true }) {
                         Label("Import corpus.db from Files", systemImage: "folder.badge.plus")
                             .font(.subheadline).foregroundStyle(.blue)
                             .frame(maxWidth: .infinity).padding(.vertical, 12)
                             .background(.regularMaterial)
-                            .clipShape(RoundedRectangle(cornerRadius: 14))
-                    }
-                    .disabled(phase != .idle)
-                } else {
-                    Button(action: { showFilePicker = true }) {
-                        Label("Import corpus.db from Files", systemImage: "folder.badge.plus")
-                            .font(.headline).foregroundStyle(.white)
-                            .frame(maxWidth: .infinity).padding()
-                            .background(phase == .idle ? Color.blue : Color.gray)
                             .clipShape(RoundedRectangle(cornerRadius: 14))
                     }
                     .disabled(phase != .idle)
@@ -248,7 +249,13 @@ private struct CorpusStep: View {
         }
     }
 
-    private func startURLDownload() {
+    private var mbLabel: String {
+        let done = 1_200_000_000.0 * progress
+        let mb = done / 1_048_576
+        return mb > 1024 ? String(format: "%.1f GB", mb / 1024) : String(format: "%.0f MB", mb)
+    }
+
+    private func startDownload() {
         guard let url = Config.corpusDownloadURL else { return }
         phase = .downloading
         progress = 0
@@ -261,7 +268,6 @@ private struct CorpusStep: View {
                 appState.corpusArticleCount = appState.db.corpusArticleCount
                 appState.hasCorpus = appState.corpusArticleCount > 0
                 phase = .done
-                onComplete(nil)
             } catch is CancellationError {
                 phase = .idle; progress = 0
             } catch {
@@ -285,7 +291,6 @@ private struct CorpusStep: View {
                     appState.corpusArticleCount = appState.db.corpusArticleCount
                     appState.hasCorpus = appState.corpusArticleCount > 0
                     phase = .done
-                    onComplete(nil)
                 } catch {
                     phase = .idle
                     errorMsg = error.localizedDescription
