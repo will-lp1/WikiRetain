@@ -1,0 +1,22 @@
+# Xcode
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+DerivedData/
+build/
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# Corpus DB — distributed via GitHub Releases, not tracked in git
+WikiRetain/corpus.db
+WikiRetain/corpus.db-shm
+WikiRetain/corpus.db-wal
+WikiRetain/corpus_dev.db
+
+# macOS
+.DS_Store
