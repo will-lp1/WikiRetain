@@ -134,7 +134,8 @@ struct SettingsView: View {
             .fileImporter(
                 isPresented: $showCorpusImporter,
                 allowedContentTypes: [UTType(filenameExtension: "db") ?? .data,
-                                      UTType(filenameExtension: "sqlite") ?? .data],
+                                      UTType(filenameExtension: "sqlite") ?? .data,
+                                      .gzip],
                 allowsMultipleSelection: false
             ) { result in
                 handleCorpusImport(result)

@@ -44,8 +44,8 @@ private struct WelcomeStep: View {
                     .multilineTextAlignment(.center)
             }
             VStack(alignment: .leading, spacing: 16) {
-                FeatureRow(icon: "book.fill", color: .blue, title: "50,000 Articles Offline",
-                           subtitle: "Wikipedia's most important articles, always available")
+                FeatureRow(icon: "book.fill", color: .blue, title: "Vital Articles, Built In",
+                           subtitle: "Wikipedia's most important articles, bundled and fully offline")
                 FeatureRow(icon: "pencil.and.outline", color: .green, title: "Handwritten Notes",
                            subtitle: "OCR + AI converts your ink to searchable Markdown")
                 FeatureRow(icon: "arrow.clockwise.heart.fill", color: .orange, title: "Spaced Repetition",
@@ -165,7 +165,7 @@ private struct CorpusStep: View {
             VStack(spacing: 10) {
                 Text("Wikipedia Corpus")
                     .font(.title2.bold())
-                Text("9,978 vital articles · ~1.2 GB · downloaded once")
+                Text("The vital-articles corpus ships inside the app. If it's missing you can download or import one here.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -242,7 +242,8 @@ private struct CorpusStep: View {
         .fileImporter(
             isPresented: $showFilePicker,
             allowedContentTypes: [UTType(filenameExtension: "db") ?? .data,
-                                  UTType(filenameExtension: "sqlite") ?? .data],
+                                  UTType(filenameExtension: "sqlite") ?? .data,
+                                  .gzip],
             allowsMultipleSelection: false
         ) { result in
             handleFileImport(result)

@@ -12,11 +12,17 @@ build/
 .build/
 .swiftpm/
 
-# Corpus DB — distributed via GitHub Releases, not tracked in git
+# Uncompressed corpus — generated locally / inflated at runtime, never committed.
+# The *compressed* corpus (WikiRetain/corpus.db.gz and corpus_build/corpus.db.gz)
+# IS committed so the app ships fully offline.
 WikiRetain/corpus.db
 WikiRetain/corpus.db-shm
 WikiRetain/corpus.db-wal
 WikiRetain/corpus_dev.db
+# Build outputs from build_corpus.py. The shipped copy lives at
+# WikiRetain/corpus.db.gz (committed); these are regenerable, so keep them out.
+corpus_build/corpus.db
+corpus_build/corpus.db.gz
 
 # macOS
 .DS_Store

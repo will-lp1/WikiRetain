@@ -25,11 +25,12 @@ targets:
         excludes:
           - "corpus.db"
           - "corpus.db copy"
-    resources:
-      - path: WikiRetain/corpus.db
+      # Gzipped corpus shipped inside the app bundle and inflated on first launch.
+      # Small enough to live in the GitHub repo; makes the app fully offline.
+      # Listed explicitly with buildPhase: resources so it's copied, not compiled.
+      - path: WikiRetain/corpus.db.gz
+        buildPhase: resources
         optional: true
-        onDemandResourceTags:
-          - corpus
     info:
       path: WikiRetain/Resources/Info.plist
       properties:

@@ -16,9 +16,40 @@ final class DatabaseService: @unchecked Sendable {
     }
 
     func setup() async {
+        extractBundledCorpusIfNeeded()
         openCorpus()
         openUserDB()
         createUserTables()
+    }
+
+    // MARK: - Bundled corpus (offline, no download)
+
+    /// The app ships `corpus.db.gz` inside its bundle. On first launch (when no
+    /// usable corpus exists yet) we inflate it once into Documents/corpus.db so the
+    /// app works fully offline with zero network access. Subsequent launches skip
+    /// this — and a larger corpus downloaded later in Documents takes precedence.
+    private func extractBundledCorpusIfNeeded() {
+        let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let destURL = docsURL.appendingPathComponent("corpus.db")
+
+        // A raw corpus.db bundled directly, or one already inflated/downloaded → nothing to do.
+        if Bundle.main.path(forResource: "corpus", ofType: "db") != nil { return }
+        if FileManager.default.fileExists(atPath: destURL.path) { return }
+
+        guard let gzPath = Bundle.main.path(forResource: "corpus.db", ofType: "gz")
+                ?? Bundle.main.path(forResource: "corpus", ofType: "db.gz") else {
+            return  // No bundled corpus — falls back to download / dev corpus.
+        }
+
+        do {
+            let compressed = try Data(contentsOf: URL(fileURLWithPath: gzPath))
+            let inflated = try Gzip.gunzip(compressed)
+            try inflated.write(to: destURL, options: .atomic)
+            print("Inflated bundled corpus → \(destURL.path) (\(inflated.count) bytes)")
+        } catch {
+            print("Failed to extract bundled corpus: \(error.localizedDescription)")
+            try? FileManager.default.removeItem(at: destURL)  // don't leave a partial file
+        }
     }
 
     // MARK: - Open DBs
@@ -278,7 +309,7 @@ final class DatabaseService: @unchecked Sendable {
         let stableURL = docsURL.appendingPathComponent("corpus_download_tmp.db")
         let destURL  = docsURL.appendingPathComponent("corpus.db")
 
-        var sessionTask: URLSessionDownloadTask?
+        nonisolated(unsafe) var sessionTask: URLSessionDownloadTask?
 
         let tempURL: URL = try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { (cont: CheckedContinuation<URL, Error>) in
@@ -307,15 +338,13 @@ final class DatabaseService: @unchecked Sendable {
 
         try Task.checkCancellation()
 
-        if FileManager.default.fileExists(atPath: destURL.path) {
-            try FileManager.default.removeItem(at: destURL)
-        }
-        try FileManager.default.moveItem(at: tempURL, to: destURL)
+        try installCorpusFile(at: tempURL, to: destURL)
+        try? FileManager.default.removeItem(at: tempURL)
         if corpusDB != nil { sqlite3_close(corpusDB); corpusDB = nil }
         openCorpus()
     }
 
-    /// Copy a corpus.db from a security-scoped URL into Documents and reopen.
+    /// Copy a corpus.db (or corpus.db.gz) from a security-scoped URL into Documents and reopen.
     func importCorpus(from sourceURL: URL) throws {
         let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         let destURL = docsURL.appendingPathComponent("corpus.db")
@@ -325,10 +354,7 @@ final class DatabaseService: @unchecked Sendable {
         guard hasAccess else { throw ImportError.accessDenied }
 
         do {
-            if FileManager.default.fileExists(atPath: destURL.path) {
-                try FileManager.default.removeItem(at: destURL)
-            }
-            try FileManager.default.copyItem(at: sourceURL, to: destURL)
+            try installCorpusFile(at: sourceURL, to: destURL)
         } catch {
             throw ImportError.copyFailed(error)
         }
@@ -336,6 +362,22 @@ final class DatabaseService: @unchecked Sendable {
         // Close current corpus and reopen from the new file
         if corpusDB != nil { sqlite3_close(corpusDB); corpusDB = nil }
         openCorpus()
+    }
+
+    /// Write `source` to `dest`, transparently inflating it first if it's gzipped.
+    /// Lets the bundled/downloaded/imported corpus be either a raw .db or a .db.gz.
+    private func installCorpusFile(at source: URL, to dest: URL) throws {
+        let data = try Data(contentsOf: source)
+        let isGzip = data.count >= 2 && data[data.startIndex] == 0x1f
+            && data[data.startIndex + 1] == 0x8b
+        if FileManager.default.fileExists(atPath: dest.path) {
+            try FileManager.default.removeItem(at: dest)
+        }
+        if isGzip {
+            try Gzip.gunzip(data).write(to: dest, options: .atomic)
+        } else {
+            try FileManager.default.copyItem(at: source, to: dest)
+        }
     }
 
     var corpusArticleCount: Int {

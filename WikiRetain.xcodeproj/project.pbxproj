@@ -11,6 +11,7 @@
 		1B55E282152C1D7CB5DE3181 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F931CE896272C98485D2D38 /* ContentView.swift */; };
 		1ED7C0CC54257FE44776AB4C /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64AFF6043DEC8E45CBF7D68A /* MainTabView.swift */; };
 		1FF74731E70AB045897B434B /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F1531AF21F53B8B57E462CED /* CoreData.framework */; };
+		21BB83D18D51C9BD53812BA5 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C8DC2579DC22D5D02107DB /* Config.swift */; };
 		2412530F26B0B208BC438D90 /* ReviewService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C69D994218D8C8845374CF6E /* ReviewService.swift */; };
 		33E6D50D8CAE66EC7FCE6BDB /* NoteService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C47FEB1EF34CF7E453DD7E54 /* NoteService.swift */; };
 		38034A60C6E1314FDF1A58CB /* DatabaseService+QueryCorpus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25D6652C79EB45943BC9AB62 /* DatabaseService+QueryCorpus.swift */; };
@@ -23,20 +24,20 @@
 		90192033D546752F313A3913 /* ArticleService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A37140D0737263C28B6178F /* ArticleService.swift */; };
 		A3F1E9BE227D8509D5B694B8 /* DatabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F187BC4B965EECF6FA404DC8 /* DatabaseService.swift */; };
 		A3F29A4B11FDC0E1DB7D8BC4 /* NoteViewerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42F15EC7359CB69C848702CA /* NoteViewerView.swift */; };
+		A63CB8BA6EABCC826107832A /* corpus.db.gz in Resources */ = {isa = PBXBuildFile; fileRef = D84CECF9DF22246FD580F1D1 /* corpus.db.gz */; };
 		AACDFD2EFB10B4358B62F946 /* Note.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1470F4B08A83CB22772280EC /* Note.swift */; };
-		AB1D722A83B966B97C6CAA28 /* corpus.db-shm in Resources */ = {isa = PBXBuildFile; fileRef = BB59603D7A873161DB1BCF68 /* corpus.db-shm */; };
 		AF16DEE2B430167FF70D349D /* ReviewQueueView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79685F3852049E81F3AF8267 /* ReviewQueueView.swift */; };
 		B744CA2FDFC701C46A6D7D81 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7B9E9CD88C042ACEA0D11238 /* Assets.xcassets */; };
 		BA35C7266F4207C3ED9880B1 /* NoteCanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB92BC126E40DB20536C55B2 /* NoteCanvasView.swift */; };
 		BAC9830444B0102DE680A649 /* ArticleSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 490749AA6C65ED0943904388 /* ArticleSearchView.swift */; };
 		BDCE5DD09E62E1C4B60B56D7 /* Article.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF17C903B7437C194F68309F /* Article.swift */; };
+		CBE92F1E2F7B5401E54C2AD9 /* Gzip.swift in Sources */ = {isa = PBXBuildFile; fileRef = F080C39D73854F0632470612 /* Gzip.swift */; };
 		D4B29DF90F199D7CFD7AE031 /* AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E86D3B54B8209C9381F9A42 /* AIService.swift */; };
 		D7D7484D63FA7E192E1B8696 /* NotesHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A4D7648F43B1DB54520ED3 /* NotesHubView.swift */; };
 		DE78D7B90AA69C41321860FA /* MainRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 515D1542EB9C066FA3193D20 /* MainRootView.swift */; };
 		DFEACBE5E548208D9D7112B4 /* MindMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 379EC429FD410238B36F9091 /* MindMapView.swift */; };
 		E237AA636A99C35383661EB2 /* ReviewSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF967949EEC5B761532D5017 /* ReviewSessionView.swift */; };
 		E3A8D2BE6CDD18980B7192C0 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F82789B8E65DBF33AD7D4AC8 /* AppState.swift */; };
-		E4E8FF0C82D241BBB71489A2 /* corpus.db-wal in Resources */ = {isa = PBXBuildFile; fileRef = C7C894F292665DBB01C561CF /* corpus.db-wal */; };
 		EC64504AAB9F0754073CBD59 /* GraphService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 943B3A84B1D7A2D1414E45A1 /* GraphService.swift */; };
 		EE397AC62FA7474095DEFDC5 /* WikiRetainApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE8BCF4994A61DA561BFE5CD /* WikiRetainApp.swift */; };
 		F947EF53496A287FC3D64057 /* ArticleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 366AA763356E195BBF391F6D /* ArticleView.swift */; };
@@ -50,7 +51,7 @@
 		1470F4B08A83CB22772280EC /* Note.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Note.swift; sourceTree = "<group>"; };
 		1585E1A5D244CBA20A0A8291 /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
 		1E86D3B54B8209C9381F9A42 /* AIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIService.swift; sourceTree = "<group>"; };
-		229BBF180A683ACE0ADFBCDC /* WikiRetain.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WikiRetain.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		229BBF180A683ACE0ADFBCDC /* WikiRetain.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = WikiRetain.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		25D6652C79EB45943BC9AB62 /* DatabaseService+QueryCorpus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DatabaseService+QueryCorpus.swift"; sourceTree = "<group>"; };
 		25FD53A769455EC648202E5A /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		2B4967C0B13BA3BE34F45852 /* GraphNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphNode.swift; sourceTree = "<group>"; };
@@ -61,6 +62,7 @@
 		490749AA6C65ED0943904388 /* ArticleSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleSearchView.swift; sourceTree = "<group>"; };
 		4F931CE896272C98485D2D38 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		515D1542EB9C066FA3193D20 /* MainRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainRootView.swift; sourceTree = "<group>"; };
+		54C8DC2579DC22D5D02107DB /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		5A37140D0737263C28B6178F /* ArticleService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleService.swift; sourceTree = "<group>"; };
 		64AFF6043DEC8E45CBF7D68A /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		70F2C0450EBA27E044605679 /* SRSCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SRSCard.swift; sourceTree = "<group>"; };
@@ -72,13 +74,13 @@
 		AB92BC126E40DB20536C55B2 /* NoteCanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteCanvasView.swift; sourceTree = "<group>"; };
 		AE8BCF4994A61DA561BFE5CD /* WikiRetainApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WikiRetainApp.swift; sourceTree = "<group>"; };
 		BA103B8BECEFE358E89DCF14 /* FSRS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FSRS.swift; sourceTree = "<group>"; };
-		BB59603D7A873161DB1BCF68 /* corpus.db-shm */ = {isa = PBXFileReference; lastKnownFileType = file; path = "corpus.db-shm"; sourceTree = "<group>"; };
 		C47FEB1EF34CF7E453DD7E54 /* NoteService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteService.swift; sourceTree = "<group>"; };
 		C69D994218D8C8845374CF6E /* ReviewService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewService.swift; sourceTree = "<group>"; };
-		C7C894F292665DBB01C561CF /* corpus.db-wal */ = {isa = PBXFileReference; lastKnownFileType = file; path = "corpus.db-wal"; sourceTree = "<group>"; };
 		D3A4D7648F43B1DB54520ED3 /* NotesHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesHubView.swift; sourceTree = "<group>"; };
+		D84CECF9DF22246FD580F1D1 /* corpus.db.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = corpus.db.gz; sourceTree = "<group>"; };
 		DF967949EEC5B761532D5017 /* ReviewSessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewSessionView.swift; sourceTree = "<group>"; };
 		EF17C903B7437C194F68309F /* Article.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Article.swift; sourceTree = "<group>"; };
+		F080C39D73854F0632470612 /* Gzip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Gzip.swift; sourceTree = "<group>"; };
 		F1531AF21F53B8B57E462CED /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		F187BC4B965EECF6FA404DC8 /* DatabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseService.swift; sourceTree = "<group>"; };
 		F462E1E87DC2874BAAC699A2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -125,8 +127,7 @@
 				0BEA65483EAE78E5E9E616C7 /* Resources */,
 				9BDD119F8620F2C24FC62706 /* Services */,
 				A2B1E3BBD8E9E469AD078329 /* Views */,
-				BB59603D7A873161DB1BCF68 /* corpus.db-shm */,
-				C7C894F292665DBB01C561CF /* corpus.db-wal */,
+				D84CECF9DF22246FD580F1D1 /* corpus.db.gz */,
 			);
 			path = WikiRetain;
 			sourceTree = "<group>";
@@ -163,6 +164,7 @@
 			isa = PBXGroup;
 			children = (
 				F82789B8E65DBF33AD7D4AC8 /* AppState.swift */,
+				54C8DC2579DC22D5D02107DB /* Config.swift */,
 				AE8BCF4994A61DA561BFE5CD /* WikiRetainApp.swift */,
 			);
 			path = App;
@@ -201,6 +203,7 @@
 				F187BC4B965EECF6FA404DC8 /* DatabaseService.swift */,
 				25D6652C79EB45943BC9AB62 /* DatabaseService+QueryCorpus.swift */,
 				943B3A84B1D7A2D1414E45A1 /* GraphService.swift */,
+				F080C39D73854F0632470612 /* Gzip.swift */,
 				C47FEB1EF34CF7E453DD7E54 /* NoteService.swift */,
 				86BA8532292489FFB7A1A7B1 /* OCRService.swift */,
 				C69D994218D8C8845374CF6E /* ReviewService.swift */,
@@ -300,8 +303,14 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1640;
+				TargetAttributes = {
+					885BD92D994EF22415A683FB = {
+						DevelopmentTeam = "";
+					};
+				};
 			};
 			buildConfigurationList = D5E3C62B1E75D278237845F7 /* Build configuration list for PBXProject "WikiRetain" */;
+			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -311,7 +320,6 @@
 			mainGroup = 2DE6984EF99F37AEECBE43C3;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
-			productRefGroup = 352F9710DA5FB99A3061B991 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -326,8 +334,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B744CA2FDFC701C46A6D7D81 /* Assets.xcassets in Resources */,
-				AB1D722A83B966B97C6CAA28 /* corpus.db-shm in Resources */,
-				E4E8FF0C82D241BBB71489A2 /* corpus.db-wal in Resources */,
+				A63CB8BA6EABCC826107832A /* corpus.db.gz in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -344,12 +351,14 @@
 				BAC9830444B0102DE680A649 /* ArticleSearchView.swift in Sources */,
 				90192033D546752F313A3913 /* ArticleService.swift in Sources */,
 				F947EF53496A287FC3D64057 /* ArticleView.swift in Sources */,
+				21BB83D18D51C9BD53812BA5 /* Config.swift in Sources */,
 				1B55E282152C1D7CB5DE3181 /* ContentView.swift in Sources */,
 				38034A60C6E1314FDF1A58CB /* DatabaseService+QueryCorpus.swift in Sources */,
 				A3F1E9BE227D8509D5B694B8 /* DatabaseService.swift in Sources */,
 				39B74F004AB2F430B164EDB4 /* FSRS.swift in Sources */,
 				480B23B00E54CEE60ED12172 /* GraphNode.swift in Sources */,
 				EC64504AAB9F0754073CBD59 /* GraphService.swift in Sources */,
+				CBE92F1E2F7B5401E54C2AD9 /* Gzip.swift in Sources */,
 				06D79A098050EAC6BDF560AF /* HomeView.swift in Sources */,
 				DE78D7B90AA69C41321860FA /* MainRootView.swift in Sources */,
 				1ED7C0CC54257FE44776AB4C /* MainTabView.swift in Sources */,
@@ -381,7 +390,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = AVQBY2MY8G;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = WikiRetain/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
@@ -461,7 +469,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = AVQBY2MY8G;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = WikiRetain/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
