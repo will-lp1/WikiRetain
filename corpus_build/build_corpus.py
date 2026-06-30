@@ -16,7 +16,9 @@ Schema (must match Services/DatabaseService.swift + ArticleService.swift):
     articles(id, title, body_html, category, wikilinks, word_count, vital_level)
     articles_fts USING fts5(title, body_text, content='articles', content_rowid='id')
 
-  - body_html : HTML extract from the MediaWiki extracts API.
+  - body_html : cleaned article HTML from the MediaWiki parse API, preserving
+                inline <a href="/wiki/Title"> links and formatting (prose,
+                headings, lists, emphasis); tables/refs/images/chrome stripped.
   - wikilinks : JSON array of *internal* article ids (ids of other rows in this
                 corpus that this article links to) — used for the "See Also"
                 graph and the knowledge map.
@@ -47,6 +49,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from html.parser import HTMLParser
 
 WORKERS = 2  # concurrent API requests — Wikimedia rate-limits anonymous bots hard
 
@@ -186,30 +189,152 @@ def strip_html(s: str) -> str:
     return _WS_RE.sub(" ", html.unescape(_TAG_RE.sub(" ", s))).strip()
 
 
-def _fetch_one_extract(title: str) -> tuple[str, str]:
-    """Fetch the full HTML extract for a single article.
+# --- HTML cleaner: turn full Parsoid/parse HTML into compact, link-rich prose ---
+#
+# The `extracts` API strips inline links and most markup, so we use `action=parse`
+# (full rendered HTML) and clean it down to a whitelist. We KEEP prose, headings,
+# lists, emphasis, and inline `<a href="/wiki/Title">` links (which the app turns
+# into tappable navigation). We DROP tables/infoboxes, images, references,
+# navboxes, citation superscripts, edit links, and other chrome to keep it small.
 
-    The extracts API caps full-article requests at one title each (exlimit=1),
-    so we request them individually and parallelise across a thread pool.
+_KEEP_TAGS = {"p", "a", "b", "strong", "i", "em", "ul", "ol", "li",
+              "dl", "dt", "dd", "blockquote", "br", "sup", "sub"}  # sup/sub for math (E=mc², H₂O)
+_HEADING_TAGS = {"h2", "h3", "h4", "h5"}
+# Note: citation markers (<sup class="reference">) are still dropped via _SKIP_CLASS.
+_SKIP_TAGS = {"style", "link", "script", "img", "figure", "figcaption", "table",
+              "math", "audio", "video", "map", "meta", "noscript"}
+_SKIP_CLASS = ("navbox", "editsection", "reference", "reflist", "mw-references",
+               "metadata", "shortdescription", "hatnote", "thumb", "gallery",
+               "infobox", "ambox", "navigation", "noprint", "mw-empty-elt", "toc",
+               "sistersitebox", "mbox", "navbar")
+# Section headings whose content (to the next section/end) is dropped wholesale.
+_CUT_SECTIONS = {"references", "notes", "citations", "sources", "bibliography",
+                 "external links", "further reading", "footnotes", "works cited",
+                 "explanatory notes", "general sources", "see also"}
+_VOID_TAGS = {"br", "img", "link", "meta", "hr"}
+
+
+class _HTMLCleaner(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.out: list[str] = []
+        self.skip_tag: str | None = None
+        self.skip_n = 0
+        self.suppress = False          # set once we hit a cut section heading
+        self.head_tag: str | None = None
+        self.head_buf: list[str] = []
+        self.a_stack: list[bool] = []  # whether each open <a> was emitted
+
+    def _is_skip(self, tag: str, attrs) -> bool:
+        if tag in _SKIP_TAGS:
+            return True
+        d = dict(attrs)
+        if d.get("role") == "navigation":
+            return True
+        cls = d.get("class", "") or ""
+        return any(c in cls for c in _SKIP_CLASS)
+
+    def handle_starttag(self, tag, attrs):
+        if self.skip_tag:
+            if tag == self.skip_tag and tag not in _VOID_TAGS:
+                self.skip_n += 1
+            return
+        if self._is_skip(tag, attrs):
+            if tag not in _VOID_TAGS:
+                self.skip_tag, self.skip_n = tag, 1
+            return
+        if self.suppress:
+            return
+        if tag in _HEADING_TAGS:
+            self.head_tag, self.head_buf = tag, []
+            return
+        if tag == "a":
+            href = dict(attrs).get("href", "")
+            href = href.split("#", 1)[0]  # drop section fragment so the app can match it
+            # Keep only mainspace article links (drop Help:/File:/Wikipedia:/Category: etc.,
+            # keeping their visible text). Mainspace titles don't contain a colon.
+            target = href[6:] if href.startswith("/wiki/") else ""
+            if target and ":" not in target and '"' not in href:
+                self.out.append('<a href="%s">' % href)
+                self.a_stack.append(True)
+            else:
+                self.a_stack.append(False)  # drop the anchor, keep its text
+            return
+        if tag in _KEEP_TAGS:
+            self.out.append("<br>" if tag == "br" else "<%s>" % tag)
+
+    def handle_endtag(self, tag):
+        if self.skip_tag:
+            if tag == self.skip_tag:
+                self.skip_n -= 1
+                if self.skip_n <= 0:
+                    self.skip_tag = None
+            return
+        if self.head_tag and tag == self.head_tag:
+            raw = "".join(self.head_buf).strip()
+            if raw.lower() in _CUT_SECTIONS:
+                self.suppress = True
+            elif raw and not self.suppress:
+                self.out.append("<%s>%s</%s>" % (tag, html.escape(raw, quote=False), tag))
+            self.head_tag, self.head_buf = None, []
+            return
+        if self.suppress:
+            return
+        if tag == "a":
+            if self.a_stack and self.a_stack.pop():
+                self.out.append("</a>")
+            return
+        if tag in _KEEP_TAGS and tag != "br":
+            self.out.append("</%s>" % tag)
+
+    def handle_data(self, data):
+        if self.skip_tag or self.suppress:
+            return
+        if self.head_tag is not None:
+            self.head_buf.append(data)
+            return
+        self.out.append(html.escape(data, quote=False))
+
+    def result(self) -> str:
+        h = "".join(self.out)
+        h = re.sub(r"<p>\s*</p>", "", h)
+        h = re.sub(r"\n{2,}", "\n", h)
+        h = re.sub(r"[ \t]{2,}", " ", h)
+        return h.strip()
+
+
+def clean_article_html(raw: str) -> str:
+    c = _HTMLCleaner()
+    c.feed(raw)
+    return c.result()
+
+
+def _fetch_one_extract(title: str) -> tuple[str, str]:
+    """Fetch full rendered article HTML and clean it to link-rich prose.
+
+    Uses `action=parse` (which preserves inline links and formatting), one title
+    per request, parallelised across a thread pool.
     """
     data = api_get(
         {
-            "action": "query",
-            "prop": "extracts",
-            "explaintext": "0",  # keep HTML
+            "action": "parse",
+            "page": title,
+            "prop": "text",
             "redirects": "1",
-            "titles": title,
+            "disableeditsection": "1",
+            "disabletoc": "1",
         }
     )
-    pages = data.get("query", {}).get("pages", {})
-    for p in pages.values():
-        if p.get("extract"):
-            return p.get("title", title), p["extract"]
-    return title, ""
+    parse = data.get("parse")
+    if not parse or "text" not in parse:
+        return title, ""
+    canonical = parse.get("title", title)
+    cleaned = clean_article_html(parse["text"]["*"])
+    return canonical, cleaned
 
 
 def fetch_extracts(canonical_titles: list[str]) -> dict[str, str]:
-    """canonical title -> HTML extract, fetched concurrently (one per request)."""
+    """canonical title -> cleaned article HTML, fetched concurrently (one per request)."""
     extracts: dict[str, str] = {}
     total = len(canonical_titles)
     done = 0
@@ -221,9 +346,9 @@ def fetch_extracts(canonical_titles: list[str]) -> dict[str, str]:
                 if body:
                     extracts[title] = body
             except Exception as e:  # noqa: BLE001 - skip a failing article, keep going
-                print(f"\n  skip extract '{futures[fut]}': {e}")
+                print(f"\n  skip article '{futures[fut]}': {e}")
             done += 1
-            print(f"  extracts {done}/{total}", end="\r", flush=True)
+            print(f"  articles {done}/{total}", end="\r", flush=True)
     print()
     return extracts
 
@@ -382,7 +507,7 @@ def main() -> int:
             canon_order.append(c)
     print(f"  {len(canon_order)} unique articles after redirect collapse")
 
-    print("Fetching HTML extracts…")
+    print("Fetching & cleaning article HTML…")
     extracts = fetch_extracts(canon_order)
 
     print("Fetching link graph…")
