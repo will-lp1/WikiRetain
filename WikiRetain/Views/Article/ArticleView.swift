@@ -65,6 +65,7 @@ struct ArticleView: View {
                         .clipShape(Circle())
                         .shadow(radius: 4)
                 }
+                .buttonStyle(.pressable)
 
                 // TOC button
                 Button {
@@ -78,6 +79,7 @@ struct ArticleView: View {
                         .clipShape(Circle())
                         .shadow(radius: 2)
                 }
+                .buttonStyle(.pressable)
             }
             .padding(.trailing, 20)
             .padding(.bottom, 40)

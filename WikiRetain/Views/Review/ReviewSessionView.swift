@@ -476,7 +476,7 @@ private struct RatingView: View {
                         .background(ratingBackground(rating))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressable(scale: 0.98))
                 }
             }
             .padding(.horizontal)

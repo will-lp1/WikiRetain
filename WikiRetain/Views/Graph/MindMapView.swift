@@ -447,6 +447,9 @@ private struct NodeDetailSheet: View {
 // MARK: - Empty State
 
 private struct EmptyGraphView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var appeared = false
+
     var body: some View {
         VStack(spacing: 20) {
             Image(systemName: "network")
@@ -460,5 +463,8 @@ private struct EmptyGraphView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
         }
+        .opacity(appeared || reduceMotion ? 1 : 0)
+        .offset(y: appeared || reduceMotion ? 0 : 8)
+        .onAppear { withAnimation(Motion.easeOut.delay(0.1)) { appeared = true } }
     }
 }

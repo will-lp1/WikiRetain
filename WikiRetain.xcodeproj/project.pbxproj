@@ -36,6 +36,7 @@
 		D7D7484D63FA7E192E1B8696 /* NotesHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A4D7648F43B1DB54520ED3 /* NotesHubView.swift */; };
 		DE78D7B90AA69C41321860FA /* MainRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 515D1542EB9C066FA3193D20 /* MainRootView.swift */; };
 		DFEACBE5E548208D9D7112B4 /* MindMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 379EC429FD410238B36F9091 /* MindMapView.swift */; };
+		E19563004725F1014D6F21E0 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42125D7C1A72A6E4FFF8EE94 /* DesignSystem.swift */; };
 		E237AA636A99C35383661EB2 /* ReviewSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF967949EEC5B761532D5017 /* ReviewSessionView.swift */; };
 		E3A8D2BE6CDD18980B7192C0 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F82789B8E65DBF33AD7D4AC8 /* AppState.swift */; };
 		EC64504AAB9F0754073CBD59 /* GraphService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 943B3A84B1D7A2D1414E45A1 /* GraphService.swift */; };
@@ -58,6 +59,7 @@
 		366AA763356E195BBF391F6D /* ArticleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleView.swift; sourceTree = "<group>"; };
 		379EC429FD410238B36F9091 /* MindMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MindMapView.swift; sourceTree = "<group>"; };
 		3C318A5BA202D51D90424821 /* QuizSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizSession.swift; sourceTree = "<group>"; };
+		42125D7C1A72A6E4FFF8EE94 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
 		42F15EC7359CB69C848702CA /* NoteViewerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteViewerView.swift; sourceTree = "<group>"; };
 		490749AA6C65ED0943904388 /* ArticleSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleSearchView.swift; sourceTree = "<group>"; };
 		4F931CE896272C98485D2D38 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -165,6 +167,7 @@
 			children = (
 				F82789B8E65DBF33AD7D4AC8 /* AppState.swift */,
 				54C8DC2579DC22D5D02107DB /* Config.swift */,
+				42125D7C1A72A6E4FFF8EE94 /* DesignSystem.swift */,
 				AE8BCF4994A61DA561BFE5CD /* WikiRetainApp.swift */,
 			);
 			path = App;
@@ -355,6 +358,7 @@
 				1B55E282152C1D7CB5DE3181 /* ContentView.swift in Sources */,
 				38034A60C6E1314FDF1A58CB /* DatabaseService+QueryCorpus.swift in Sources */,
 				A3F1E9BE227D8509D5B694B8 /* DatabaseService.swift in Sources */,
+				E19563004725F1014D6F21E0 /* DesignSystem.swift in Sources */,
 				39B74F004AB2F430B164EDB4 /* FSRS.swift in Sources */,
 				480B23B00E54CEE60ED12172 /* GraphNode.swift in Sources */,
 				EC64504AAB9F0754073CBD59 /* GraphService.swift in Sources */,

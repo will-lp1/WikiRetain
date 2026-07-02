@@ -50,11 +50,15 @@ struct MainRootView: View {
 
     private var topHUD: some View {
         HStack(alignment: .center) {
-            // Drop an "AppLogo" image asset to replace this placeholder
-            Image("AppLogo")
-                .resizable()
-                .scaledToFit()
-                .frame(height: 32)
+            // Wordmark
+            HStack(spacing: 7) {
+                Image(systemName: "brain.head.profile")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(.blue)
+                Text("WikiRetain")
+                    .font(.system(size: 18, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.primary)
+            }
 
             Spacer()
 
@@ -67,6 +71,7 @@ struct MainRootView: View {
                     .frame(width: 44, height: 44)
                     .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
             }
+            .buttonStyle(.pressable)
         }
         .padding(.horizontal, 20)
         .padding(.top, 8)
@@ -93,7 +98,7 @@ struct MainRootView: View {
                 .padding(.vertical, 11)
                 .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 13))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.pressable)
 
             // Quiz FAB with due-count badge
             Button {
@@ -114,9 +119,12 @@ struct MainRootView: View {
                             .padding(.vertical, 2)
                             .background(.red, in: Capsule())
                             .offset(x: 6, y: -6)
+                            .transition(.scale.combined(with: .opacity))
                     }
                 }
             }
+            .buttonStyle(.pressable)
+            .animation(Motion.spring, value: appState.reviewService.dueCount)
         }
         .padding(.horizontal, 20)
         .padding(.bottom, 32)
@@ -430,6 +438,7 @@ private struct SearchSheet: View {
             }
             .padding(.vertical, 2)
         }
+        .buttonStyle(.pressable(scale: 0.98, haptic: false))
         .listRowBackground(Color.clear)
     }
 }
