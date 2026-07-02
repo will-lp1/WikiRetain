@@ -58,15 +58,14 @@ final class ArticleService: ObservableObject {
         return applyUserState(to: results)
     }
 
-    /// A diverse sample of articles (one per category) to seed exploration
-    /// from the empty knowledge-graph state.
+    /// A random sample of articles to seed exploration from the empty
+    /// knowledge-graph state — fresh suggestions each time it's shown.
     func suggested(limit: Int = 8) async -> [Article] {
         var results: [Article] = []
         db.queryCorpus("""
             SELECT id, title, body_html, category, wikilinks, word_count, vital_level
             FROM articles
-            WHERE id IN (SELECT MIN(id) FROM articles WHERE category IS NOT NULL GROUP BY category)
-            ORDER BY category
+            ORDER BY RANDOM()
             LIMIT ?;
         """, bindings: [.int64(Int64(limit))]) { stmt in
             results.append(self.articleFromStmt(stmt))

@@ -23,6 +23,17 @@ struct ArticleView: View {
 
     var displayArticle: Article { fullArticle ?? article }
 
+    /// The reader's background colour, matched to the WebView theme so the edge
+    /// fade masks blend seamlessly in light / dark / sepia / system modes.
+    private var readerBackground: Color {
+        switch colorScheme {
+        case "light": return .white
+        case "dark":  return .black
+        case "sepia": return Color(red: 0.961, green: 0.929, blue: 0.839) // #f5edd6
+        default:      return Color(.systemBackground)
+        }
+    }
+
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             VStack(spacing: 0) {
@@ -53,6 +64,20 @@ struct ArticleView: View {
                     Task { await appState.articleService.saveScrollPosition(aid, fraction: frac) }
                 } onScrolledToEnd: {
                     markAsRead()
+                }
+                // Clean edge masks: content fades in under the nav bar and out
+                // above the floating controls, in the reader's own theme colour.
+                .overlay(alignment: .top) {
+                    LinearGradient(colors: [readerBackground, readerBackground.opacity(0)],
+                                   startPoint: .top, endPoint: .bottom)
+                        .frame(height: 22)
+                        .allowsHitTesting(false)
+                }
+                .overlay(alignment: .bottom) {
+                    LinearGradient(colors: [readerBackground.opacity(0), readerBackground],
+                                   startPoint: .top, endPoint: .bottom)
+                        .frame(height: 72)
+                        .allowsHitTesting(false)
                 }
             }
 
