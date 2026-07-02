@@ -471,11 +471,11 @@ private struct EmptyGraphView: View {
             }
 
             if !suggestions.isEmpty {
-                VStack(spacing: 12) {
-                    Text("START EXPLORING")
-                        .font(.caption2.weight(.semibold))
-                        .foregroundStyle(.tertiary)
-                        .tracking(0.6)
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Start exploring")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
 
                     LazyVGrid(columns: columns, spacing: 12) {
                         ForEach(Array(suggestions.enumerated()), id: \.element.id) { index, article in
@@ -507,8 +507,8 @@ private struct SuggestionCard: View {
         Button(action: onTap) {
             VStack(alignment: .leading, spacing: 6) {
                 if let category = article.category {
-                    Text(category.uppercased())
-                        .font(.caption2.weight(.semibold))
+                    Text(category)
+                        .font(.caption.weight(.medium))
                         .foregroundStyle(.blue)
                         .lineLimit(1)
                 }
