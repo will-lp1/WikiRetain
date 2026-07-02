@@ -7,6 +7,7 @@ struct ArticleView: View {
 
     @AppStorage("fontSizeOffset") private var fontSizeOffset: Int = 0
     @AppStorage("colorScheme")    private var colorScheme: String = "system"
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var fullArticle: Article?
     @State private var wikilinks: [Article] = []
@@ -17,6 +18,8 @@ struct ArticleView: View {
     @State private var previewArticle: Article?
     @State private var previewText: String?
     @State private var showPreview = false
+    @State private var scrollTarget: ScrollTarget?
+    @State private var scrollNonce = 0
 
     var displayArticle: Article { fullArticle ?? article }
 
@@ -38,7 +41,9 @@ struct ArticleView: View {
                     article: displayArticle,
                     wikilinks: wikilinks,
                     fontSizeOffset: fontSizeOffset,
-                    colorScheme: colorScheme
+                    colorScheme: colorScheme,
+                    scrollTarget: scrollTarget,
+                    reduceMotion: reduceMotion
                 ) { linkedId in
                     navigateTo(linkedId)
                 } onLinkLongPress: { linkedId in
@@ -101,7 +106,13 @@ struct ArticleView: View {
             NotesHubView(article: displayArticle)
         }
         .sheet(isPresented: $showTOC) {
-            TOCView(html: displayArticle.bodyHTML)
+            TOCView(html: displayArticle.bodyHTML) { section in
+                showTOC = false
+                scrollNonce += 1
+                scrollTarget = ScrollTarget(section: section, nonce: scrollNonce)
+            }
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
         }
         .sheet(isPresented: $showPreview) {
             if let linked = previewArticle {
@@ -204,11 +215,20 @@ struct ArticleView: View {
 
 // MARK: - Web View
 
+/// A request to scroll the article to a given section. `nonce` makes repeated
+/// taps on the same section distinct so each one re-triggers the scroll.
+struct ScrollTarget: Equatable {
+    let section: Int
+    let nonce: Int
+}
+
 struct ArticleWebView: UIViewRepresentable {
     let article: Article
     let wikilinks: [Article]
     var fontSizeOffset: Int = 0
     var colorScheme: String = "system"
+    var scrollTarget: ScrollTarget? = nil
+    var reduceMotion: Bool = false
     let onLinkTap: (Int64) -> Void
     let onLinkLongPress: (Int64) -> Void
     let onScrollProgress: (Double) -> Void
@@ -228,6 +248,15 @@ struct ArticleWebView: UIViewRepresentable {
     func updateUIView(_ wv: WKWebView, context: Context) {
         let c = context.coordinator
         let wikilinkIds = wikilinks.map(\.id)
+
+        // Handle a scroll-to-section request without reloading the page.
+        if let target = scrollTarget, target != c.lastScrollTarget {
+            c.lastScrollTarget = target
+            let behavior = reduceMotion ? "auto" : "smooth"
+            let js = "var e=document.getElementById('sec-\(target.section)');" +
+                     "if(e){e.scrollIntoView({behavior:'\(behavior)',block:'start'});}"
+            wv.evaluateJavaScript(js)
+        }
 
         // Only reload when something meaningful changed — prevents scroll reset
         // when unrelated state (e.g. parent re-renders) triggers updateUIView.
@@ -292,6 +321,7 @@ struct ArticleWebView: UIViewRepresentable {
                  line-height: 1.65; margin: 0; padding: 16px 20px 80px;
                  color: #1c1c1e; background: #ffffff; max-width: 700px; }
           \(colorSchemeCSS)
+          h1, h2, h3, h4 { scroll-margin-top: 16px; }
           h1 { font-size: 1.6em; font-weight: 700; margin-top: 1.5em; }
           h2 { font-size: 1.3em; font-weight: 600; margin-top: 1.4em;
                padding-bottom: 4px; border-bottom: 1px solid rgba(128,128,128,0.2); }
@@ -340,11 +370,30 @@ struct ArticleWebView: UIViewRepresentable {
             window.webkit.messageHandlers.scrollProgress.postMessage(frac.toFixed(4));
           }, {passive: true});
         </script>
-        \(processedHTML())
+        \(withHeadingIDs(processedHTML()))
         \(seeAlsoHTML())
         </body>
         </html>
         """
+    }
+
+    // Tag each heading with a sequential id (sec-0, sec-1, …) in document order,
+    // matching the indices TOCView extracts, so the TOC can scroll to a section.
+    private func withHeadingIDs(_ html: String) -> String {
+        guard let re = try? NSRegularExpression(pattern: "<h([1-4])(\\s[^>]*)?>",
+                                                options: .caseInsensitive) else { return html }
+        let ns = html as NSString
+        let matches = re.matches(in: html, range: NSRange(location: 0, length: ns.length))
+        var result = ""
+        var last = 0
+        for (i, m) in matches.enumerated() {
+            result += ns.substring(with: NSRange(location: last, length: m.range.location - last))
+            let level = ns.substring(with: m.range(at: 1))
+            result += "<h\(level) id=\"sec-\(i)\">"
+            last = m.range.location + m.range.length
+        }
+        result += ns.substring(from: last)
+        return result
     }
 
     // Convert wikilinks to tappable JS handlers.
@@ -411,6 +460,8 @@ struct ArticleWebView: UIViewRepresentable {
         var pendingScrollFraction: Double = 0
         // Live scroll fraction updated as user scrolls (for same-article reloads)
         var liveScrollFraction: Double = 0
+        // Last handled scroll-to-section request
+        var lastScrollTarget: ScrollTarget? = nil
 
         init(_ parent: ArticleWebView) { self.parent = parent }
 
@@ -504,25 +555,50 @@ private struct BreadcrumbBar: View {
 
 private struct TOCView: View {
     let html: String
+    var onSelect: (Int) -> Void
+    @Environment(\.dismiss) private var dismiss
     @State private var headers: [(level: Int, text: String)] = []
 
     var body: some View {
         NavigationStack {
-            List(headers.indices, id: \.self) { i in
-                let header = headers[i]
-                HStack {
-                    if header.level > 1 {
-                        Rectangle()
-                            .frame(width: CGFloat(header.level - 1) * 12, height: 1)
-                            .hidden()
+            Group {
+                if headers.isEmpty {
+                    ContentUnavailableView("No Sections",
+                                           systemImage: "list.bullet",
+                                           description: Text("This article has no section headings."))
+                } else {
+                    List(headers.indices, id: \.self) { i in
+                        let header = headers[i]
+                        Button {
+                            onSelect(i)
+                        } label: {
+                            HStack(spacing: 10) {
+                                Circle()
+                                    .fill(header.level <= 2 ? Color.accentColor : Color.secondary.opacity(0.5))
+                                    .frame(width: header.level <= 2 ? 6 : 4)
+                                Text(header.text)
+                                    .font(header.level <= 2 ? .body.weight(.semibold) : .subheadline)
+                                    .foregroundStyle(header.level <= 2 ? .primary : .secondary)
+                                    .lineLimit(2)
+                                Spacer(minLength: 0)
+                            }
+                            .padding(.leading, CGFloat(max(0, header.level - 2)) * 16)
+                            .contentShape(Rectangle())
+                            .padding(.vertical, 2)
+                        }
+                        .buttonStyle(.pressable(scale: 0.98, haptic: false))
+                        .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
                     }
-                    Text(header.text)
-                        .font(header.level == 1 ? .headline : .subheadline)
-                        .foregroundStyle(header.level == 1 ? .primary : .secondary)
+                    .listStyle(.plain)
                 }
             }
             .navigationTitle("Contents")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") { dismiss() }
+                }
+            }
         }
         .onAppear { headers = extractHeaders(from: html) }
     }

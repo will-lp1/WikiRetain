@@ -58,6 +58,22 @@ final class ArticleService: ObservableObject {
         return applyUserState(to: results)
     }
 
+    /// A diverse sample of articles (one per category) to seed exploration
+    /// from the empty knowledge-graph state.
+    func suggested(limit: Int = 8) async -> [Article] {
+        var results: [Article] = []
+        db.queryCorpus("""
+            SELECT id, title, body_html, category, wikilinks, word_count, vital_level
+            FROM articles
+            WHERE id IN (SELECT MIN(id) FROM articles WHERE category IS NOT NULL GROUP BY category)
+            ORDER BY category
+            LIMIT ?;
+        """, bindings: [.int64(Int64(limit))]) { stmt in
+            results.append(self.articleFromStmt(stmt))
+        }
+        return applyUserState(to: results)
+    }
+
     func recentlyRead(limit: Int = 20) async -> [Article] {
         // Get ordered IDs from userDB, then fetch articles from corpusDB
         var orderedIds: [Int64] = []

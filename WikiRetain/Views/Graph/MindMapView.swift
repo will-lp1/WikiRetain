@@ -28,7 +28,7 @@ struct MindMapView: View {
             if isLoading {
                 ProgressView("Building mind map…")
             } else if nodes.isEmpty {
-                EmptyGraphView()
+                EmptyGraphView { article in articleToOpen = article }
             } else {
                 graphCanvas
             }
@@ -447,24 +447,82 @@ private struct NodeDetailSheet: View {
 // MARK: - Empty State
 
 private struct EmptyGraphView: View {
+    @EnvironmentObject var appState: AppState
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    var onOpen: (Article) -> Void
+
     @State private var appeared = false
+    @State private var suggestions: [Article] = []
+
+    private let columns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
 
     var body: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "network")
-                .font(.system(size: 52))
-                .foregroundStyle(.tertiary)
-            Text("No knowledge graph yet")
-                .font(.title3.bold())
-            Text("Search for an article to begin building your knowledge map.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
+        VStack(spacing: 24) {
+            VStack(spacing: 14) {
+                Image(systemName: "point.3.connected.trianglepath.dotted")
+                    .font(.system(size: 46))
+                    .foregroundStyle(.tertiary)
+                Text("No knowledge graph yet")
+                    .font(.title3.bold())
+                Text("Read an article to begin building your knowledge map.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+
+            if !suggestions.isEmpty {
+                VStack(spacing: 12) {
+                    Text("START EXPLORING")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.tertiary)
+                        .tracking(0.6)
+
+                    LazyVGrid(columns: columns, spacing: 12) {
+                        ForEach(Array(suggestions.enumerated()), id: \.element.id) { index, article in
+                            SuggestionCard(article: article) { onOpen(article) }
+                                .opacity(appeared ? 1 : 0)
+                                .offset(y: appeared ? 0 : 10)
+                                .animation(reduceMotion ? .none
+                                           : Motion.easeOut.delay(0.12 + Double(index) * 0.04),
+                                           value: appeared)
+                        }
+                    }
+                }
+            }
         }
-        .opacity(appeared || reduceMotion ? 1 : 0)
-        .offset(y: appeared || reduceMotion ? 0 : 8)
-        .onAppear { withAnimation(Motion.easeOut.delay(0.1)) { appeared = true } }
+        .padding(.horizontal, 28)
+        .frame(maxWidth: 460)
+        .task {
+            suggestions = await appState.articleService.suggested(limit: 6)
+            appeared = true
+        }
+    }
+}
+
+private struct SuggestionCard: View {
+    let article: Article
+    var onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            VStack(alignment: .leading, spacing: 6) {
+                if let category = article.category {
+                    Text(category.uppercased())
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.blue)
+                        .lineLimit(1)
+                }
+                Text(article.title)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.primary)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+                Spacer(minLength: 0)
+            }
+            .frame(maxWidth: .infinity, minHeight: 72, alignment: .topLeading)
+            .padding(14)
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
+        }
+        .buttonStyle(.pressable)
     }
 }
