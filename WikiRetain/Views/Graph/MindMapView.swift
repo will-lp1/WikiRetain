@@ -455,46 +455,31 @@ private struct EmptyGraphView: View {
     @State private var suggestions: [Article] = []
 
     var body: some View {
-        VStack(spacing: 24) {
-            VStack(spacing: 14) {
-                Image(systemName: "point.3.connected.trianglepath.dotted")
-                    .font(.system(size: 46))
-                    .foregroundStyle(.tertiary)
-                Text("No knowledge graph yet")
-                    .font(.title3.bold())
-                Text("Read an article to begin building your knowledge map.")
+        VStack(alignment: .leading, spacing: 22) {
+            VStack(alignment: .leading, spacing: 5) {
+                Text("Start exploring")
+                    .font(.title.bold())
+                Text("Open an article to start building your map.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
             }
 
-            if !suggestions.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Start exploring")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                        .padding(.leading, 4)
-
-                    VStack(spacing: 0) {
-                        ForEach(Array(suggestions.enumerated()), id: \.element.id) { index, article in
-                            SuggestionRow(article: article) { onOpen(article) }
-                                .opacity(appeared ? 1 : 0)
-                                .offset(y: appeared ? 0 : 10)
-                                .animation(reduceMotion ? .none
-                                           : Motion.easeOut.delay(0.12 + Double(index) * 0.04),
-                                           value: appeared)
-                            if index < suggestions.count - 1 {
-                                Divider().padding(.leading, 64)
-                            }
-                        }
+            VStack(spacing: 0) {
+                ForEach(Array(suggestions.enumerated()), id: \.element.id) { index, article in
+                    SuggestionRow(article: article) { onOpen(article) }
+                        .opacity(appeared ? 1 : 0)
+                        .offset(y: appeared ? 0 : 8)
+                        .animation(reduceMotion ? .none
+                                   : Motion.easeOut.delay(0.08 + Double(index) * 0.04),
+                                   value: appeared)
+                    if index < suggestions.count - 1 {
+                        Divider()
                     }
-                    .background(Color(.secondarySystemBackground),
-                                in: RoundedRectangle(cornerRadius: 18, style: .continuous))
                 }
             }
         }
-        .padding(.horizontal, 24)
-        .frame(maxWidth: 460)
+        .padding(.horizontal, 28)
+        .frame(maxWidth: 480)
         .task {
             suggestions = await appState.articleService.suggested(limit: 6)
             appeared = true
@@ -508,62 +493,27 @@ private struct SuggestionRow: View {
 
     var body: some View {
         Button(action: onTap) {
-            HStack(spacing: 14) {
-                let style = CategoryStyle.of(article.category)
-                Image(systemName: style.symbol)
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 36, height: 36)
-                    .background(style.color.gradient,
-                                in: RoundedRectangle(cornerRadius: 9, style: .continuous))
-
-                VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 3) {
                     Text(article.title)
                         .font(.body.weight(.semibold))
                         .foregroundStyle(.primary)
                         .lineLimit(1)
                     if let category = article.category {
                         Text(category)
-                            .font(.subheadline)
+                            .font(.footnote)
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
                     }
                 }
-
                 Spacer(minLength: 8)
-
                 Image(systemName: "chevron.right")
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.tertiary)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.quaternary)
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 11)
+            .padding(.vertical, 13)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.pressable(scale: 0.98, haptic: false))
-    }
-}
-
-/// Maps a corpus category to an SF Symbol + accent colour for icon tiles.
-private struct CategoryStyle {
-    let symbol: String
-    let color: Color
-
-    static func of(_ category: String?) -> CategoryStyle {
-        let c = (category ?? "").lowercased()
-        switch true {
-        case c.contains("art"):                            return .init(symbol: "paintpalette.fill", color: .pink)
-        case c.contains("everyday"):                       return .init(symbol: "house.fill", color: .teal)
-        case c.contains("geograph"):                       return .init(symbol: "globe.americas.fill", color: .green)
-        case c.contains("health"), c.contains("medicine"): return .init(symbol: "heart.fill", color: .red)
-        case c.contains("histor"):                         return .init(symbol: "building.columns.fill", color: .brown)
-        case c.contains("math"):                           return .init(symbol: "function", color: .indigo)
-        case c.contains("people"):                         return .init(symbol: "person.2.fill", color: .orange)
-        case c.contains("philosoph"), c.contains("religion"): return .init(symbol: "book.closed.fill", color: .purple)
-        case c.contains("scien"):                          return .init(symbol: "atom", color: .blue)
-        case c.contains("society"), c.contains("social"):  return .init(symbol: "person.3.fill", color: .cyan)
-        case c.contains("techn"):                          return .init(symbol: "gearshape.fill", color: .gray)
-        default:                                           return .init(symbol: "doc.text.fill", color: .blue)
-        }
+        .buttonStyle(.pressable(scale: 0.99, haptic: false))
     }
 }
